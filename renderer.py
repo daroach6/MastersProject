@@ -12,14 +12,11 @@ class FCN(nn.Module):
         self.conv2 = (nn.Conv2d(16, 32, 3, 1, 1))
         self.conv3 = (nn.Conv2d(32, 64, 3, 1, 1))
         self.biUp = nn.Upsample(scale_factor=2, mode="bilinear")
-        #self.pixel_shuffle = nn.PixelShuffle(2)
-        #//todo bi-linear up sampling
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
-        #x = F.relu(self.fc4(x))
         x = x.view(-1, 16,16,3)
         x = F.relu(self.conv1(x))
         x = self.biUp(x)
