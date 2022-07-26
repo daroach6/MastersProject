@@ -22,9 +22,12 @@ class BrushStrokeDataset(Dataset):
 
     def __getitem__(self, idx):
         image = cv2.imread(self.rootDir + str(idx) +".png").astype('float32')
-        image = cv2.normalize(image, None, alpha = 0, beta = 1, norm_type = cv2.NORM_MINMAX)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        image = image / 255
         image = torch.from_numpy(image)
+        #print(image.size())
         data = self.strokeParameter[idx]
+
         data = torch.from_numpy(data)
         sample = { 'data': data, 'image': image}
 

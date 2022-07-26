@@ -5,17 +5,17 @@ from torch.utils.data import Dataset, DataLoader
 from BrushStrokeDataset import BrushStrokeDataset
 
 #Hyperparameters
-learning_rate = 3e-6
-epochs = 10
-batchSize = 4
-strokes = 5000
+learning_rate = 1e-4
+epochs = 20
+batchSize = 64
+strokes = 60000
 
 #
 def train_loop(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
     for batchNo, batch in enumerate(dataloader):
         # Compute prediction and loss
-        x = batch["data"]
+        x = batch["data"][:,:7]
         y = batch["image"]
         pred = model(x)
         loss = loss_fn(pred, y)
@@ -37,7 +37,7 @@ def test_loop(dataloader, model, loss_fn):
 
     with torch.no_grad():
         for batch in dataloader:
-            x = batch["data"]
+            x = batch["data"][:,:7]
             y = batch["image"]
             pred = model(x)
             test_loss += loss_fn(pred, y).item()

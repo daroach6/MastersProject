@@ -10,24 +10,24 @@ def randPt(i):
     return random.randint(0, i)
 
 img = np.zeros((x, y, 3), dtype=np.uint8)
-parameters = []
+parameters = list(np.loadtxt(csvDir, delimiter=","))
 print(parameters)
-for i in range(60000):
+for i in range(len(parameters),(len(parameters)+20000)):
     img[:, :] = (255, 255, 255)
     pos = np.array([(randPt(x), randPt(y)) for i in range(3)])
     pts = Bezier.Curve(np.arange(0, 1, 0.01), pos)
     pts = pts.reshape((-1, 1, 2))
 
     color = [random.randint(0,255) for i in range(3)]
-    thickness = random.randint(1, 100)
-    print()
-    parameters.append(np.concatenate((pos.reshape((6)),[thickness],np.array(color))).tolist())
-
+    thickness = random.randint(1, 10)
+#
     cv2.polylines(img, np.int32([pts]), False,color, thickness)
     cv2.imshow('image', img)
     cv2.waitKey(1)
     cv2.imwrite("data/BrushStrokes/stroke"+ str(i) +".png", img)
+    #
+    pos = pos/128
+    thickness = thickness/100
+    parameters.append(np.concatenate((pos.reshape((6)), [thickness], np.array(color) / 255)).tolist())
 print(parameters)
-
 np.savetxt("data/strokeParameters.CSV",np.array(parameters),delimiter=",")
-cv2.waitKey(0)
