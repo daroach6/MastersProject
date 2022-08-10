@@ -1,9 +1,11 @@
+import matplotlib.pyplot as plt
 import torch
 from torchvision import transforms
 import Agent
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 import torchvision
+from tqdm import tqdm
 
 #Hyperparameters
 learning_rate = 1e-4
@@ -48,17 +50,24 @@ def test_loop(dataloader, model, loss_fn):
 
 #
 transform = transforms.Compose([
-    transforms.Scale(128),
+    transforms.Resize(128),
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
 #supplying images into dataloaders for training
-images = torchvision.datasets.CelebA(root = "data", transform = transform)
-smiling = [img[0] for img in images if img[1][31] == 1]
-notSmiling = [img[0] for img in images if img[1][31] != 1]
+images = torchvision.datasets.CelebA(root = "data", transform = transform, download=True)
+print()
+smiling = []
+notSmiling = []
+for img in tqdm(images):
+    if img[1][31] == 1:
+        smiling.append(img[0])
+    else:
+        notSmiling.append(img[0])
+
 loader1 = DataLoader(smiling)
-loader2 = DataLoader(notSmiling)
+loader0 = DataLoader(notSmiling)
 
 #
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -67,8 +76,11 @@ model = Agent.agentRNN().to(device)
 loss_fn = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-#
-print("Loading existing Model:")
+
+
+
+'''print("Loading existing Model:")
+
 #model.load_state_dict((torch.load("data/agent.pt")))
 #model.eval()
 for t in range(epochs):
@@ -77,4 +89,4 @@ for t in range(epochs):
     test_loop(testLoader, model, loss_fn)
     print("Saving current model:")
     torch.save(model.state_dict(), "data/agent.pt")
-print("Done!")
+print("Done!")'''
