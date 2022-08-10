@@ -1,22 +1,21 @@
 import torch
+from torchvision import transforms
 import Agent
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
-from BrushStrokeDataset import BrushStrokeDataset
+import torchvision
 
 #Hyperparameters
 learning_rate = 1e-4
 epochs = 20
 batchSize = 64
-strokes = 100000
 
 #
-def train_loop(dataloader, model, loss_fn, optimizer):
-    size = len(dataloader.dataset)
-    for batchNo, batch in enumerate(dataloader):
+def train_loop(dataloader1, dataloader2,model, loss_fn, optimizer):
+    size = len(dataloader1.dataset)
+    for batchNo, batch in enumerate(dataloader1):
         # Compute prediction and loss
-        x = batch["image"]
-        y = batch["data"]
+        x = batch
         pred = model(x)
         loss = loss_fn(pred, y)
 
@@ -48,12 +47,18 @@ def test_loop(dataloader, model, loss_fn):
     print(f"Test Error: \n Avg loss: {test_loss:>8f} \n")
 
 #
-data = BrushStrokeDataset(strokes=strokes)
-trainSize = int(0.7 * len(data))
-testSize = len(data) - trainSize
-train, test = torch.utils.data.random_split(data, [trainSize,testSize])
-trainLoader = DataLoader(train, batch_size=batchSize, shuffle=True, num_workers=0, drop_last=True)
-testLoader = DataLoader(test, batch_size=batchSize, shuffle=True, num_workers=0, drop_last=True)
+transform = transforms.Compose([
+    transforms.Scale(128),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+])
+
+#supplying images into dataloaders for training
+images = torchvision.datasets.CelebA(root = "data", transform = transform)
+smiling = [img[0] for img in images if img[1][31] == 1]
+notSmiling = [img[0] for img in images if img[1][31] != 1]
+loader1 = DataLoader(smiling)
+loader2 = DataLoader(notSmiling)
 
 #
 device = "cuda" if torch.cuda.is_available() else "cpu"
