@@ -33,29 +33,31 @@ class CNN(nn.Module):
         x = self.block4(x)
         return x.view(-1, 8192)
 
-class agentRNN(nn.Module):
-    def __init__(self):
-        super(agentRNN, self).__init__()
+class agentNN(nn.Module):
+    def __init__(self, n = 20):
+        super(agentNN, self).__init__()
         #
-        self.targetCNN = CNN()
-        self.drawCNN = CNN()
+        self.CNN = CNN()
         #
-        self.fc1 = nn.Linear(16384, 1024)
+        self.fc1 = nn.Linear(8193, 1024)
         self.lrelu1 = nn.LeakyReLU(0.2)
         self.fc2 = nn.Linear(1024, 256)
         self.lrelu2 = nn.LeakyReLU(0.2)
-        self.fcBrush = nn.Linear(256, 4)
-        self.fcCoords = nn.Linear(256, 6)
+        self.fcBrush = nn.Linear(256, 4*n)
+        self.fcCoords = nn.Linear(256, 6*n)
+        self.n = n
 
-    def forward(self, target, canvas):
+    def forward(self, image, attribute):
 
-        target = self.targetCNN(target)
-        x = self.drawCNN(canvas)
-        x = torch.cat((target, x), 1)
+        x = self.CNN(image)
+        attribute = attribute.view(-1,1)
+        x = torch.cat((x,attribute), 1)
         x = self.fc1(x)
         x = self.lrelu1(x)
         x = self.fc2(x)
         x = self.lrelu2(x)
         brush = torch.sigmoid(self.fcBrush(x))
+        brush = brush.view(-1, self.n, 4)
         coords = torch.tanh(self.fcCoords(x))
-        return torch.cat((coords,brush),1)
+        coords = coords.view(-1, self.n, 6)
+        return torch.cat((coords, brush), 2)

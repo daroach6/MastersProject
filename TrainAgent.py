@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 from torchvision import transforms
 import Agent
@@ -10,7 +11,7 @@ from tqdm import tqdm
 #Hyperparameters
 learning_rate = 1e-4
 epochs = 20
-batchSize = 64
+batchSize = 3
 
 #
 def train_loop(dataloader1, dataloader2,model, loss_fn, optimizer):
@@ -50,43 +51,40 @@ def test_loop(dataloader, model, loss_fn):
 
 #
 transform = transforms.Compose([
-    transforms.Resize(128),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    transforms.CenterCrop(128),
+    transforms.ToTensor()#,
+    #transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
-
 #supplying images into dataloaders for training
 images = torchvision.datasets.CelebA(root = "data", transform = transform, download=True)
 print()
 smiling = []
 notSmiling = []
-for img in tqdm(images):
+for i in tqdm(range(10000)):
+    img = images[i]
     if img[1][31] == 1:
-        smiling.append(img[0])
+        smiling.append([img[0], 1])
     else:
-        notSmiling.append(img[0])
+        notSmiling.append([np.asarray(img[0]), 0])
 
-loader1 = DataLoader(smiling)
-loader0 = DataLoader(notSmiling)
+loader1 = DataLoader(smiling, batch_size=batchSize, shuffle=True, num_workers=0, drop_last=True)
+loader0 = DataLoader(notSmiling, batch_size=batchSize, shuffle=True, num_workers=0, drop_last=True)
 
 #
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device} device")
-model = Agent.agentRNN().to(device)
+agent = Agent.agentNN().to(device)
 loss_fn = nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.Adam(agent.parameters(), lr=learning_rate)
 
 
-
-
-'''print("Loading existing Model:")
-
-#model.load_state_dict((torch.load("data/agent.pt")))
-#model.eval()
+print("Loading existing Model:")
+#agent.load_state_dict((torch.load("data/agent.pt")))
+#agent.eval()
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
-    train_loop(trainLoader, model, loss_fn, optimizer)
-    test_loop(testLoader, model, loss_fn)
-    print("Saving current model:")
-    torch.save(model.state_dict(), "data/agent.pt")
-print("Done!")'''
+    train_loop(, agent, loss_fn, optimizer)
+    test_loop(testLoader, agent, loss_fn)
+    print("Saving current agent:")
+    torch.save(agent.state_dict(), "data/agent.pt")
+print("Done!")

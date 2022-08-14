@@ -41,8 +41,3 @@ for i in range(1,5):
     plt.axis('off')
     plt.title("Truth")
 plt.show()
-
-
-
-
-
