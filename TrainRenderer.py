@@ -41,10 +41,8 @@ def test_loop(dataloader, model, loss_fn):
             y = batch["image"]
             pred = model(x)
             test_loss += loss_fn(pred, y).item()
-            correct += (pred == y).type(torch.float).sum().item()
 
     test_loss /= num_batches
-    correct /= size
     print(f"Test Error: \n Avg loss: {test_loss:>8f} \n")
 
 #

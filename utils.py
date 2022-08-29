@@ -1,8 +1,15 @@
 import cv2
+import numpy as np
 from matplotlib import pyplot as plt
-
+import torch
+from torchvision import transforms
+from PIL import Image
 # Injects colour into a brush stroke by replacing all values below 0.9 with the given RGB value, while rounding up the
 # other numbers to 1
+
+t2p = transforms.ToPILImage()
+p2t = transforms.ToTensor()
+
 def revertColour(gimg, c1, c2, c3):
     C1 = gimg.copy()
     C2 = gimg.copy()
@@ -32,3 +39,13 @@ def applyStrokes(img, data, renderer):
     for s in strokes:
         newImg = overlayLine(newImg, s)
     return newImg
+
+#Generate images with set of strokes
+def generateImage(g, imgs, r, domains):
+    gImgs = []
+    strokes = g(imgs, domains)
+    for set in zip(imgs, strokes):
+        img = np.asarray(t2p(set[0]))
+        img = applyStrokes(img, set[1], r)
+        gImgs.append(p2t(Image.fromarray(img)))
+    return torch.stack(gImgs)

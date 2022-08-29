@@ -22,10 +22,10 @@ for i in tqdm(range(len(parameters),(len(parameters)+20000))):
 
     color = [random.randint(0,255) for i in range(3)]
     thickness = random.randint(1, 10)
-    #
+
     cv2.polylines(img, np.int32([pts]), False,color, thickness)
     cv2.imwrite("data/BrushStrokes/stroke"+ str(i) +".png", img)
-    #
+
     pos = pos/128
     thickness = thickness/100
     parameters.append(np.concatenate((pos.reshape((6)), [thickness], np.array(color) / 255)).tolist())
